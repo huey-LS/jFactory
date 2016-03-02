@@ -37,6 +37,17 @@ var tallMePhone = function(data, options, task){
     }
 }
 
+var select = function(data, options, task){
+    var select = confirm('确认告诉我手机，取消告诉我名字。');
+    if(select){
+        select = 'phone';
+    } else {
+        select = 'name';
+    }
+    task.update({type: select});
+    task.next();
+}
+
 var success = function(data, options, task){
     var is_success;
     if(task.data.name){
@@ -49,17 +60,49 @@ var success = function(data, options, task){
     } else {
         task.back();
     }
-
 }
 
 
 var myTask = new Task({
     tasks: {
         'tallMeName': ['welcome', 'tallMeName', 'success'],
-        'tallMePhone': ['welcome', 'tallMePhone', 'success']
+        'tallMePhone': ['welcome', 'tallMePhone', 'success'],
+        'tallMe': [
+            'welcome',
+            'select',
+            [
+                function(data, options, task){
+                    if(task.data.type === 'phone'){
+                        task.next();
+                    } else {
+                        task.go(5);
+                    }
+                }, {
+                    notHistory: 1
+                }
+            ],
+            'tallMePhone',
+            [
+                function(data, options, task){
+                    task.go(7);
+                }, {
+                    notHistory: 1
+                }
+            ],
+            'tallMeName',
+            [
+                function(data, options, task){
+                    task.go(7);
+                }, {
+                    notHistory: 1
+                }
+            ],
+            'success'
+        ],
     },
     jobs: {
         'welcome': welcome,
+        'select': select,
         'tallMeName': tallMeName,
         'tallMePhone': tallMePhone,
         'success': success
@@ -71,6 +114,9 @@ document.getElementById('task1').onclick = function(){
 }
 document.getElementById('task2').onclick = function(){
     myTask.createTask('tallMePhone').next();
+}
+document.getElementById('task3').onclick = function(){
+    myTask.createTask('tallMe').next();
 }
 
 })()

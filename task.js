@@ -25,6 +25,9 @@ var extend = function(obj) {
     }
     return obj;
 };
+var isArray = Array.isArray || function(obj) {
+    return toString.call(obj) === '[object Array]';
+};
 
     /**
      * 多任务集合 - 适用通过几个共同的jobs，创建多任务
@@ -65,10 +68,18 @@ var extend = function(obj) {
     }
     Task.prototype.go = function(targetStep, data, options){
         if(targetStep === undefined) return;
-        var ActiveJob = this.jobs[this.config[targetStep]];
+        var ActiveJob = this.config[targetStep];
+        var jobOptions;
+        if(typeof ActiveJob === 'string'){
+            ActiveJob = this.jobs[ActiveJob];
+        }
+        if(isArray(ActiveJob)){
+            jobOptions = ActiveJob[1];
+            ActiveJob = ActiveJob[0];
+        }
         if(!ActiveJob) return;
         options = extend({}, options);
-        if(!options.silent){
+        if(!options.silent && (!jobOptions || !jobOptions.notHistory)){
             this.history.splice(this.history.step, this.history.length - this.history.step, targetStep);
             this.history.step = this.history.length;
         }
@@ -130,15 +141,18 @@ var extend = function(obj) {
         if(this.callback && this.callback.finish) this.callback.finish.call(this, data);
         if(this.active && this.active.destroy) this.active.destroy();
     }
-    Task.prototype.update = function(data){
+    Task.prototype.update = function(data, reset){
         var newData;
         if(this.callback && this.callback.update) {
             newData = this.callback.update.call(this, data);
         }
-        if(newData !== undefined){
+        if(newData === undefined){
+            newData = data;
+        }
+        if(reset || !isObject(this.data)){
             this.data = newData;
         } else {
-            this.data = data;
+            extend(this.data, newData);
         }
     }
     Task.prototype.destroy = function(){
