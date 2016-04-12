@@ -1,7 +1,7 @@
 (function(global, factory){
     // Set up egeui appropriately for the environment.
     if (typeof define === 'function' && define.cmd) {
-        define("task", function(require, exports, module) {
+        define(function(require, exports, module) {
             module.exports = factory();
         });
     } else {
@@ -35,20 +35,20 @@ var isArray = Array.isArray || function(obj) {
      */
     var TaskFactory = function(options){
         this.reset(options);
-    }
+    };
     TaskFactory.prototype.reset = function(options){
         this.tasks = extend({}, options.tasks);
         this.jobs = extend({}, options.jobs);
-    }
+    };
     TaskFactory.prototype.add = function(options){
         this.tasks = extend(this.tasks, options.tasks);
         this.jobs = extend(this.jobs, options.jobs);
-    }
+    };
     TaskFactory.prototype.createTask = function(taskName, data, options){
         if(this.tasks[taskName]){
             return new Task(taskName, this.tasks[taskName], this.jobs, data, options);
         }
-    }
+    };
     /**
      * 单个任务构造函数
      * @param {String} taskName
@@ -65,7 +65,7 @@ var isArray = Array.isArray || function(obj) {
         this.config = config;
         this.callback = this.options.callback;
         this.history = [];
-    }
+    };
     Task.prototype.go = function(targetStep, data, options){
         if(targetStep === undefined) return;
         var ActiveJob = this.config[targetStep];
@@ -87,7 +87,7 @@ var isArray = Array.isArray || function(obj) {
         this.step = targetStep;
         this.active = new ActiveJob(data, this.options, this);
         if(this.callback && this.callback.afterShow) this.callback.afterShow.call(this, data);
-    }
+    };
     Task.prototype.next = function(data){
         if(this.callback && this.callback.beforeNext) this.callback.beforeNext.call(this, data);
         var targetStep;
@@ -100,7 +100,7 @@ var isArray = Array.isArray || function(obj) {
             targetStep = this.step + 1;
         }
         this.go(targetStep, data);
-    }
+    };
     Task.prototype.previous = function(data){
         if(this.callback && this.callback.beforePrevious) this.callback.beforePrevious.call(this, data);
         var targetStep;
@@ -110,7 +110,7 @@ var isArray = Array.isArray || function(obj) {
             targetStep = this.step - 1;
         }
         this.go(targetStep, data);
-    }
+    };
     Task.prototype.back = function(data){
         var targetStep;
         if(this.callback && this.callback.beforeBack) this.callback.beforeBack.call(this, data);
@@ -121,7 +121,7 @@ var isArray = Array.isArray || function(obj) {
             targetStep = this.history[this.history.step - 1];
             this.go(targetStep, data, {silent: true});
         }
-    }
+    };
     Task.prototype.forward = function(data){
         var targetStep;
         if(this.callback && this.callback.beforeBack) this.callback.beforeBack.call(this, data);
@@ -132,15 +132,15 @@ var isArray = Array.isArray || function(obj) {
             targetStep = this.history[this.history.step + 1];
             this.go(targetStep, data, {silent: true});
         }
-    }
+    };
     Task.prototype.cancel = function(data){
         if(this.callback && this.callback.cancel) this.callback.cancel.call(this, data);
         if(this.active && this.active.destroy) this.active.destroy();
-    }
+    };
     Task.prototype.finish = function(data){
         if(this.callback && this.callback.finish) this.callback.finish.call(this, data);
         if(this.active && this.active.destroy) this.active.destroy();
-    }
+    };
     Task.prototype.update = function(data, reset){
         var newData;
         if(this.callback && this.callback.update) {
@@ -154,7 +154,7 @@ var isArray = Array.isArray || function(obj) {
         } else {
             extend(this.data, newData);
         }
-    }
+    };
     Task.prototype.destroy = function(){
         delete this.options;
         delete this.data;
@@ -162,7 +162,7 @@ var isArray = Array.isArray || function(obj) {
         delete this.config;
         delete this.callback;
         delete this.history;
-    }
+    };
 
     return TaskFactory;
 }));
