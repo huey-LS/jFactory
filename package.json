@@ -1,0 +1,28 @@
+{
+  "name": "task",
+  "version": "0.9.0",
+  "description": "javascript 工厂模式，工厂构造类   轻松创建一个工厂类，便于解耦",
+  "main": "index.js",
+  "directories": {
+    "example": "examples"
+  },
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/ignous/task.git"
+  },
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/ignous/task/issues"
+  },
+  "homepage": "https://github.com/ignous/task#readme",
+  "dependencies": {
+    "babel": "^6.5.2",
+    "babel-core": "^6.13.2",
+    "babel-loader": "^6.2.4",
+    "babel-preset-es2015": "^6.13.2"
+  }
+}
