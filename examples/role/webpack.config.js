@@ -7,6 +7,9 @@ module.exports = {
   output: {
     filename: 'bundle.js',
   },
+  externals: {
+    jFactory: 'jFactory'
+  },
   module: {
     loaders: [
       {

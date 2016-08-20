@@ -1,6 +1,6 @@
 {
   "name": "task",
-  "version": "0.9.0",
+  "version": "0.9.1",
   "description": "javascript 工厂模式，工厂构造类   轻松创建一个工厂类，便于解耦",
   "main": "index.js",
   "directories": {

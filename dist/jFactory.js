@@ -1,3 +1,4 @@
+var jFactory =
 /******/ (function(modules) { // webpackBootstrap
 /******/ 	// The module cache
 /******/ 	var installedModules = {};
@@ -44,152 +45,13 @@
 /* 0 */
 /***/ function(module, exports, __webpack_require__) {
 
-	module.exports = __webpack_require__(1);
-
-
-/***/ },
-/* 1 */
-/***/ function(module, exports, __webpack_require__) {
-
-	'use strict';
-
-	var _index = __webpack_require__(2);
-
-	var _index2 = _interopRequireDefault(_index);
-
-	function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
-
-	var factory = new _index2.default();
-
-	factory.addJobs({
-	  'double': function double(item) {
-	    var _item = Object.assign({}, item);
-	    _item.n *= 2;
-	    return _item;
-	  },
-	  'plus': function plus(item) {
-	    var _item = Object.assign({}, item);
-	    _item.n++;
-	    return _item;
-	  },
-	  'asyncPlus': function asyncPlus(item) {
-	    var _item = Object.assign({}, item);
-	    return function (task) {
-	      setTimeout(function () {
-	        _item.n++;
-	        if (_item.async_count) _item.async_count++;else _item.async_count = 1;
-	        task.update(_item);
-	        task.next(_item);
-	      }, 100);
-	    };
-	  },
-	  'checkMoreThan10': function checkMoreThan10(item) {
-	    var _item = Object.assign({}, item);
-	    return function (task) {
-	      if (item.n > 10) {
-	        task.cancel();
-	      } else {
-	        task.next();
-	      }
-	    };
-	  },
-	  'upTo10': function upTo10(item) {
-	    return function (task) {
-	      if (item.n < 10) {
-	        task.previous();
-	      } else {
-	        task.next();
-	      }
-	    };
-	  }
-	});
-
-	factory.addTasks({
-	  'plus-double': ['plus', 'double'],
-	  'double-plus': ['double', 'plus'],
-	  'double-check-plus': ['double', 'checkMoreThan10', 'plus'],
-	  'asyncPlus-double': ['asyncPlus', 'double'],
-	  'plus-upTo10-notHistory': ['plus', {
-	    main: 'upTo10',
-	    options: { notHistory: 1 }
-	  }],
-	  'plus-upTo10': ['plus', 'upTo10']
-	});
-
-	var task1 = factory.createTask('plus-double', { n: 2 });
-	task1.on('complete', function (data) {
-	  console.log(data.n, 'task1', 'is 6 ?');
-	  // data.n === 6
-	});
-	// 对比以前 double(plus({n:2}))
-
-	var task2 = factory.createTask('double-plus', { n: 2 });
-	task2.on('complete', function (data) {
-	  console.log(data.n, 'task2', 'is 5 ?');
-	  // data.n === 5
-	});
-	// 对比以前 plus(double({n:2}))
-
-	var task3 = factory.createTask('double-check-plus', { n: 6 });
-	task3.on('complete', function (data) {
-	  console.log(data.n, 'task3-success');
-	  // 不会有
-	}).on('cancel', function (data) {
-	  console.log(data.n, 'task3-error', 'is 12 ?');
-	  // data.n === 12
-	});
-
-	var task4 = factory.createTask('double-check-plus', { n: 4 });
-	task4.on('complete', function (data) {
-	  console.log(data.n, 'task4-success', 'is 9 ?');
-	  // data.n === 9
-	}).on('cancel', function (data) {
-	  console.log(data.n, 'task4-error');
-	  // data.n === 9
-	});
-	// 对比以前
-	//  check(dobule({n: 2}))({
-	//    next: function(data){return plus(data)},
-	//    cancel: function(data){...}
-	//  });
-
-	var task5 = factory.createTask('asyncPlus-double', { n: 1 });
-	task5.on('complete', function (data) {
-	  console.log(data, 'task5', 'is {n: 4, async_count: 1} ?');
-	  // data is {n: 4, async_count: 1}
-	});
-	/* 对比以前
-	  asyncPlus({n: 1})({
-	    next: function(data){return plus(data)}
-	  })
-	*/
-	var task6 = factory.createTask('plus-upTo10', { n: 1 });
-	task6.on('complete', function (data) {
-	  console.log(data, 'task6', 'is up to 10 ?', task6.history);
-	  // data is {n: 4, async_count: 1}
-	});
-	/* 对比以前
-	  asyncPlus({n: 1})({
-	    next: function(data){return plus(data)}
-	  })
-	*/
-	var task7 = factory.createTask('plus-upTo10-notHistory', { n: 1 });
-	task7.on('complete', function (data) {
-	  console.log(data, 'task7', 'is up to 10 ?', task7.history);
-	  // data is {n: 4, async_count: 1}
-	});
-
-/***/ },
-/* 2 */
-/***/ function(module, exports, __webpack_require__) {
-
 	'use strict';
 
 	Object.defineProperty(exports, "__esModule", {
 	  value: true
 	});
 
-	var _Factory = __webpack_require__(3);
+	var _Factory = __webpack_require__(1);
 
 	var _Factory2 = _interopRequireDefault(_Factory);
 
@@ -198,7 +60,7 @@
 	exports.default = _Factory2.default;
 
 /***/ },
-/* 3 */
+/* 1 */
 /***/ function(module, exports, __webpack_require__) {
 
 	'use strict';
@@ -209,7 +71,7 @@
 
 	var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
 
-	var _Task = __webpack_require__(4);
+	var _Task = __webpack_require__(2);
 
 	var _Task2 = _interopRequireDefault(_Task);
 
@@ -303,7 +165,7 @@
 	exports.default = Factory;
 
 /***/ },
-/* 4 */
+/* 2 */
 /***/ function(module, exports, __webpack_require__) {
 
 	'use strict';
@@ -314,7 +176,7 @@
 
 	var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
 
-	var _Event2 = __webpack_require__(5);
+	var _Event2 = __webpack_require__(3);
 
 	var _Event3 = _interopRequireDefault(_Event2);
 
@@ -339,6 +201,9 @@
 	    _this.config = config;
 	    _this.history = [];
 
+	    /*
+	     * nextTick, 保证.on('complete')可以被触发到
+	    */
 	    Promise.resolve().then(function () {
 	      _this.next();
 	    });
@@ -351,16 +216,21 @@
 	      var prev_data = this.data;
 	      if (typeof new_data !== 'undefined' && new_data !== prev_data) {
 	        this.data = new_data;
-	        this.trigger('change', prev_data, new_data);
+	        this.trigger(this.constructor.EVENTS.DATA_UPDATE, prev_data, new_data);
 	      }
 	    }
+
+	    /**
+	     * 进行job
+	     * @PARAM {Number} targetStep task中job的index
+	     * @PARAM {Object} options
+	     *    options现在支持的只有 notHistory，表示该job不被写入历史记录中
+	    */
+
 	  }, {
 	    key: 'go',
 	    value: function go(targetStep, options) {
 	      if (targetStep === undefined) return;
-	      options = Object({
-	        silent: false
-	      }, options);
 	      var jobConfig = this.config[targetStep];
 	      var jobOptions, jobAction;
 	      if (typeof jobConfig === 'function') {
@@ -373,24 +243,33 @@
 
 	      jobOptions = Object.assign({
 	        notHistory: false
-	      }, jobConfig.options);
+	      }, jobConfig.options, options);
 
-	      if (!options.silent && !jobOptions.notHistory) {
+	      this.trigger(this.constructor.EVENTS.JOB_BEFORE_ACTION, this.data);
+
+	      //修改历史记录
+	      if (!jobOptions.notHistory) {
 	        this.history.splice(this.history.step, this.history.length - this.history.step, targetStep);
 	        this.history.step = this.history.length;
 	      }
 
-	      this.trigger('beforeActive', this.data);
-
 	      this.step = targetStep;
 	      var active = jobAction(this.data, this);
 	      this.trigger(this.constructor.EVENTS.JOB_ACTION, this.data);
+	      /*
+	       * 如果返回值是 function, 则可以通过({next}) => {next()}进入下一步，为异步流程控制设计
+	      */
 	      if (typeof active === 'function') {
 	        active(this);
 	      } else {
 	        this.next(active);
 	      }
 	    }
+
+	    /**
+	     * 跳转下一个job
+	    */
+
 	  }, {
 	    key: 'next',
 	    value: function next(new_item) {
@@ -406,6 +285,11 @@
 	      }
 	      this.go(targetStep);
 	    }
+
+	    /**
+	     * 跳转上一个job
+	    */
+
 	  }, {
 	    key: 'previous',
 	    value: function previous(new_item) {
@@ -418,6 +302,11 @@
 	      }
 	      this.go(targetStep);
 	    }
+
+	    /**
+	     * 跳转至历史记录中的上一个job
+	     */
+
 	  }, {
 	    key: 'back',
 	    value: function back(new_item) {
@@ -430,6 +319,11 @@
 	        this.go(targetStep, { silent: true });
 	      }
 	    }
+
+	    /**
+	     * 跳转至历史记录中的下一个job
+	     */
+
 	  }, {
 	    key: 'forward',
 	    value: function forward(new_item) {
@@ -442,21 +336,41 @@
 	        this.go(targetStep, { silent: true });
 	      }
 	    }
+
+	    /**
+	     * 任务取消，触发EVENTS.CANCEL事件
+	     */
+
 	  }, {
 	    key: 'cancel',
 	    value: function cancel(new_item) {
 	      if (new_item) this.update(new_item);
 	      this.trigger(this.constructor.EVENTS.CANCEL, this.data);
+	      this.destroy();
 	    }
+
+	    /**
+	     * 任务完成，触发EVENTS.COMPLETE事件
+	     */
+
 	  }, {
 	    key: 'complete',
 	    value: function complete(new_item) {
 	      if (new_item) this.update(new_item);
 	      this.trigger(this.constructor.EVENTS.COMPLETE, this.data);
+	      this.destroy();
 	    }
+
+	    /**
+	     * EVENTS事件列表
+	     */
+
 	  }, {
 	    key: 'destroy',
 	    value: function destroy() {
+	      if (typeof this.constructor.destroy === 'function') {
+	        this.constructor.destroy();
+	      }
 	      delete this.options;
 	      delete this.data;
 	      delete this.config;
@@ -468,7 +382,9 @@
 	      return {
 	        COMPLETE: 'complete',
 	        CANCEL: 'cancel',
-	        JOB_ACTION: 'active'
+	        JOB_BEFORE_ACTION: 'beforeActive',
+	        JOB_ACTION: 'active',
+	        DATA_UPDATE: 'update'
 	      };
 	    }
 	  }]);
@@ -479,7 +395,7 @@
 	exports.default = Task;
 
 /***/ },
-/* 5 */
+/* 3 */
 /***/ function(module, exports) {
 
 	'use strict';
@@ -543,6 +459,11 @@
 	        });
 	      }
 	      return this;
+	    }
+	  }, {
+	    key: 'destroy',
+	    value: function destroy() {
+	      delete this._events;
 	    }
 	  }]);
 

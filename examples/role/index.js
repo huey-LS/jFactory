@@ -59,33 +59,33 @@ factory.addTasks({
 });
 
 var task1 = factory.createTask('plus-double', {n: 2});
-task1.then(function(data){
+task1.on('complete', function(data){
   console.log(data.n, 'task1', 'is 6 ?');
   // data.n === 6
 });
 // 对比以前 double(plus({n:2}))
 
 var task2 = factory.createTask('double-plus', {n: 2});
-task2.then(function(data){
+task2.on('complete', function(data){
   console.log(data.n, 'task2', 'is 5 ?');
   // data.n === 5
 })
 // 对比以前 plus(double({n:2}))
 
 var task3 = factory.createTask('double-check-plus', {n: 6});
-task3.then(function(data){
+task3.on('complete', function(data){
   console.log(data.n, 'task3-success');
   // 不会有
-}).catch(function(data){
+}).on('cancel', function(data){
   console.log(data.n, 'task3-error', 'is 12 ?');
   // data.n === 12
 });
 
 var task4 = factory.createTask('double-check-plus', {n: 4});
-task4.then(function(data){
+task4.on('complete', function(data){
   console.log(data.n, 'task4-success', 'is 9 ?');
   // data.n === 9
-}).catch(function(data){
+}).on('cancel', function(data){
   console.log(data.n, 'task4-error');
   // data.n === 9
 })
@@ -96,7 +96,7 @@ task4.then(function(data){
 //  });
 
 var task5 = factory.createTask('asyncPlus-double', {n: 1});
-task5.then(function(data){
+task5.on('complete', function(data){
   console.log(data, 'task5', 'is {n: 4, async_count: 1} ?');
   // data is {n: 4, async_count: 1}
 })
@@ -106,7 +106,7 @@ task5.then(function(data){
   })
 */
 var task6 = factory.createTask('plus-upTo10', {n: 1});
-task6.then(function(data){
+task6.on('complete', function(data){
   console.log(data, 'task6', 'is up to 10 ?', task6.history);
   // data is {n: 4, async_count: 1}
 })
@@ -116,7 +116,7 @@ task6.then(function(data){
   })
 */
 var task7 = factory.createTask('plus-upTo10-notHistory', {n: 1});
-task7.then(function(data){
+task7.on('complete', function(data){
   console.log(data, 'task7', 'is up to 10 ?', task7.history);
   // data is {n: 4, async_count: 1}
 })

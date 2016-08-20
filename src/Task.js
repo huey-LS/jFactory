@@ -8,27 +8,28 @@ export default class Task extends Event {
     this.config = config;
     this.history = [];
 
-    this._promise = new Promise((resolve, reject) => {
-      this._promise_resolve = resolve;
-      this._promise_reject = reject;
-    });
-
-    this.next();
+    /*
+     * nextTick, 保证.on('complete')可以被触发到
+    */
+    Promise.resolve().then(() => {this.next()});
   }
 
   update(new_data) {
     var prev_data = this.data;
     if(typeof new_data !== 'undefined' && new_data !== prev_data){
       this.data = new_data;
-      this.trigger('change', prev_data, new_data);
+      this.trigger(this.constructor.EVENTS.DATA_UPDATE, prev_data, new_data);
     }
   }
 
+  /**
+   * 进行job
+   * @PARAM {Number} targetStep task中job的index
+   * @PARAM {Object} options
+   *    options现在支持的只有 notHistory，表示该job不被写入历史记录中
+  */
   go(targetStep, options) {
     if(targetStep === undefined) return;
-    options = Object({
-      silent: false
-    }, options);
     var jobConfig = this.config[targetStep];
     var jobOptions, jobAction;
     if(typeof jobConfig === 'function') {
@@ -41,34 +42,39 @@ export default class Task extends Event {
 
     jobOptions = Object.assign({
       notHistory: false
-    }, jobConfig.options);
+    }, jobConfig.options, options);
 
-    if(!options.silent && !jobOptions.notHistory) {
+    this.trigger(this.constructor.EVENTS.JOB_BEFORE_ACTION, this.data);
+
+    //修改历史记录
+    if(!jobOptions.notHistory) {
       this.history.splice(this.history.step, this.history.length - this.history.step, targetStep);
       this.history.step = this.history.length;
     }
 
-    this.trigger('beforeActive', this.data);
-
     this.step = targetStep;
     var active = jobAction(this.data, this);
+    this.trigger(this.constructor.EVENTS.JOB_ACTION, this.data);
+    /*
+     * 如果返回值是 function, 则可以通过({next}) => {next()}进入下一步，为异步流程控制设计
+    */
     if(typeof active === 'function') {
       active(this);
-      this.trigger('active', this.data);
     } else {
-      this.trigger('active', this.data);
-      this.update(active);
-      this.next();
+      this.next(active);
     }
   }
 
+  /**
+   * 跳转下一个job
+  */
   next(new_item) {
     if(new_item) this.update(new_item);
     var targetStep;
     if(this.step === undefined){
       targetStep = 0;
     } else if(this.step >= this.config.length - 1){
-      this.finish();
+      this.complete();
       return false;
     } else {
       targetStep = this.step + 1;
@@ -76,6 +82,9 @@ export default class Task extends Event {
     this.go(targetStep);
   }
 
+  /**
+   * 跳转上一个job
+  */
   previous(new_item) {
     if(new_item) this.update(new_item);
     var targetStep;
@@ -87,6 +96,9 @@ export default class Task extends Event {
     this.go(targetStep);
   }
 
+  /**
+   * 跳转至历史记录中的上一个job
+   */
   back(new_item) {
     if(new_item) this.update(new_item);
     var targetStep;
@@ -98,6 +110,9 @@ export default class Task extends Event {
     }
   }
 
+  /**
+   * 跳转至历史记录中的下一个job
+   */
   forward(new_item) {
     if(new_item) this.update(new_item);
     var targetStep;
@@ -109,24 +124,41 @@ export default class Task extends Event {
     }
   }
 
+  /**
+   * 任务取消，触发EVENTS.CANCEL事件
+   */
   cancel(new_item) {
     if(new_item) this.update(new_item);
-    this._promise_reject(this.data);
+    this.trigger(this.constructor.EVENTS.CANCEL, this.data);
+    this.destroy();
   }
 
-  finish(new_item) {
+  /**
+   * 任务完成，触发EVENTS.COMPLETE事件
+   */
+  complete(new_item) {
     if(new_item) this.update(new_item);
-    this._promise_resolve(this.data);
+    this.trigger(this.constructor.EVENTS.COMPLETE, this.data);
+    this.destroy();
   }
 
-  then(...args) {
-    return this._promise.then(...args);
-  }
-  catch(...args) {
-    return this._promise.catch(...args);
+  /**
+   * EVENTS事件列表
+   */
+  static get EVENTS() {
+    return {
+      COMPLETE: 'complete',
+      CANCEL: 'cancel',
+      JOB_BEFORE_ACTION: 'beforeActive',
+      JOB_ACTION: 'active',
+      DATA_UPDATE: 'update'
+    }
   }
 
   destroy() {
+    if(typeof this.constructor.destroy === 'function') {
+      this.constructor.destroy();
+    }
     delete this.options;
     delete this.data;
     delete this.config;

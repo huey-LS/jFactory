@@ -344,12 +344,9 @@
 	    _this.config = config;
 	    _this.history = [];
 
-	    _this._promise = new Promise(function (resolve, reject) {
-	      _this._promise_resolve = resolve;
-	      _this._promise_reject = reject;
+	    Promise.resolve().then(function () {
+	      _this.next();
 	    });
-
-	    _this.next();
 	    return _this;
 	  }
 
@@ -392,13 +389,11 @@
 
 	      this.step = targetStep;
 	      var active = jobAction(this.data, this);
+	      this.trigger(this.constructor.EVENTS.JOB_ACTION, this.data);
 	      if (typeof active === 'function') {
 	        active(this);
-	        this.trigger('active', this.data);
 	      } else {
-	        this.trigger('active', this.data);
-	        this.update(active);
-	        this.next();
+	        this.next(active);
 	      }
 	    }
 	  }, {
@@ -409,7 +404,7 @@
 	      if (this.step === undefined) {
 	        targetStep = 0;
 	      } else if (this.step >= this.config.length - 1) {
-	        this.finish();
+	        this.complete();
 	        return false;
 	      } else {
 	        targetStep = this.step + 1;
@@ -456,27 +451,13 @@
 	    key: 'cancel',
 	    value: function cancel(new_item) {
 	      if (new_item) this.update(new_item);
-	      this._promise_reject(this.data);
+	      this.trigger(this.constructor.EVENTS.CANCEL, this.data);
 	    }
 	  }, {
-	    key: 'finish',
-	    value: function finish(new_item) {
+	    key: 'complete',
+	    value: function complete(new_item) {
 	      if (new_item) this.update(new_item);
-	      this._promise_resolve(this.data);
-	    }
-	  }, {
-	    key: 'then',
-	    value: function then() {
-	      var _promise;
-
-	      return (_promise = this._promise).then.apply(_promise, arguments);
-	    }
-	  }, {
-	    key: 'catch',
-	    value: function _catch() {
-	      var _promise2;
-
-	      return (_promise2 = this._promise).catch.apply(_promise2, arguments);
+	      this.trigger(this.constructor.EVENTS.COMPLETE, this.data);
 	    }
 	  }, {
 	    key: 'destroy',
@@ -485,6 +466,15 @@
 	      delete this.data;
 	      delete this.config;
 	      delete this.history;
+	    }
+	  }], [{
+	    key: 'EVENTS',
+	    get: function get() {
+	      return {
+	        COMPLETE: 'complete',
+	        CANCEL: 'cancel',
+	        JOB_ACTION: 'active'
+	      };
 	    }
 	  }]);
 
@@ -519,6 +509,7 @@
 	    value: function on(name, callback) {
 	      var events = this._events[name] || (this._events[name] = []);
 	      events.push(callback);
+	      return this;
 	    }
 	  }, {
 	    key: 'off',
@@ -539,6 +530,7 @@
 	          if (events.indexOf(callback) !== -1) events.splice(events.indexOf(callback), 1);
 	        });
 	      }
+	      return this;
 	    }
 	  }, {
 	    key: 'trigger',
@@ -550,10 +542,12 @@
 	      }
 
 	      var events = this._events[name];
-	      if (!events) return false;
-	      event.forEach(function (callback) {
-	        return callback.apply(_this2, args);
-	      });
+	      if (events) {
+	        events.forEach(function (callback) {
+	          return callback.apply(_this2, args);
+	        });
+	      }
+	      return this;
 	    }
 	  }]);
 

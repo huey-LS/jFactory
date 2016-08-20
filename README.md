@@ -11,19 +11,28 @@ var f = new Factory();
 ```
 ### 添加一个新的job函数
 ```
-f.addJob({
-  'job1': function(item, options, task){}
+f.addJobs({
+  'job1': (data) => {},
+  //异步job
+  'job2': (data) => ({next}) => {
+    ....
+    next(new_data);
+  }
 })
 ```
 ### 添加一个新的工厂任务task
 ```
-f.addTask({
+f.addTasks({
   'task1': ['job1', 'job2']
 })
 ```
 ### 进行一个任务
 ```
-var task = f.createTask('task1', options);
+var task = f.createTask('task1', initData);
+var task2 = f.createTask({
+  main: 'task2',
+  options: {...}
+});
 ```
 
 ## task说明
@@ -40,22 +49,24 @@ var task = f.createTask('task1', options);
 - `back` 跳转到上一个历史记录中的job
 - `forward` 跳转到下一个历史记录中的job
 - `cancel` 取消任务
-- `finish` 完成任务
-- `update` 更新被加工item
+- `complete` 完成任务
+- `update` 更新被加工data
 
 ### Events
 ```
-task.on('event_name', function(task, item){});
+task.on('event_name', function(data){});
 ```
-- `finish` 整个流程完成，正常完成了最后一个job，或者调用了个task.finish
+- `complete` 整个流程完成，正常完成了最后一个job，或者调用了个task.complete
 - `cancel` 任务被取消，调用了task.cancel
-- `beforeNext` 进入下一个job前
-- `afterShow` 已完成进入下一个job
+- `action` job被调用
+- `beforeAction` job被调用前
 - `update` 任务加工的item被更新
 
 ## job说明
 job是一个函数
-### Param
-- `data`
-- `options`
-- `task`
+```
+var job = (data) => ({next}) => {
+  ....
+  next(new_data);
+}
+```
