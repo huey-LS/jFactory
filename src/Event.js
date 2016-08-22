@@ -6,6 +6,7 @@ export default class Event {
   on(name, callback) {
     var events = this._events[name] || (this._events[name] = []);
     events.push(callback);
+    return this;
   }
 
   off(name, callback) {
@@ -23,11 +24,14 @@ export default class Event {
         if(events.indexOf(callback) !== -1) events.splice(events.indexOf(callback), 1);
       });
     }
+    return this;
   }
 
   trigger(name, ...args) {
     var events = this._events[name];
-    if(!events) return false;
-    event.forEach((callback) => callback.apply(this, args));
+    if(events) {
+      events.forEach((callback) => callback.apply(this, args));
+    }
+    return this;
   }
 }

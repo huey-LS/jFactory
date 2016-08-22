@@ -8,12 +8,10 @@ export default class Task extends Event {
     this.config = config;
     this.history = [];
 
-    this._promise = new Promise((resolve, reject) => {
-      this._promise_resolve = resolve;
-      this._promise_reject = reject;
-    });
-
-    this.next();
+    /*
+     * nextTick, 保证.on('complete')可以被触发到
+    */
+    Promise.resolve().then(() => {this.next()});
   }
 
   update(new_data) {
@@ -52,23 +50,27 @@ export default class Task extends Event {
 
     this.step = targetStep;
     var active = jobAction(this.data, this);
+    this.trigger(this.constructor.EVENTS.JOB_ACTION, this.data);
+    /*
+     * 如果返回值是 function, 则可以通过({next}) => {next()}进入下一步，为异步流程控制设计
+    */
     if(typeof active === 'function') {
       active(this);
-      this.trigger('active', this.data);
     } else {
-      this.trigger('active', this.data);
-      this.update(active);
-      this.next();
+      this.next(active);
     }
   }
 
+  /*
+   * 进入下一步
+  */
   next(new_item) {
     if(new_item) this.update(new_item);
     var targetStep;
     if(this.step === undefined){
       targetStep = 0;
     } else if(this.step >= this.config.length - 1){
-      this.finish();
+      this.complete();
       return false;
     } else {
       targetStep = this.step + 1;
@@ -111,19 +113,20 @@ export default class Task extends Event {
 
   cancel(new_item) {
     if(new_item) this.update(new_item);
-    this._promise_reject(this.data);
+    this.trigger(this.constructor.EVENTS.CANCEL, this.data);
   }
 
-  finish(new_item) {
+  complete(new_item) {
     if(new_item) this.update(new_item);
-    this._promise_resolve(this.data);
+    this.trigger(this.constructor.EVENTS.COMPLETE, this.data);
   }
 
-  then(...args) {
-    return this._promise.then(...args);
-  }
-  catch(...args) {
-    return this._promise.catch(...args);
+  static get EVENTS() {
+    return {
+      COMPLETE: 'complete',
+      CANCEL: 'cancel',
+      JOB_ACTION: 'active'
+    }
   }
 
   destroy() {
