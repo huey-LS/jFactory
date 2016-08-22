@@ -201,6 +201,9 @@ var jFactory =
 	    _this.config = config;
 	    _this.history = [];
 
+	    /*
+	     * nextTick, 保证.on('complete')可以被触发到
+	    */
 	    Promise.resolve().then(function () {
 	      _this.next();
 	    });
@@ -213,16 +216,21 @@ var jFactory =
 	      var prev_data = this.data;
 	      if (typeof new_data !== 'undefined' && new_data !== prev_data) {
 	        this.data = new_data;
-	        this.trigger('change', prev_data, new_data);
+	        this.trigger(this.constructor.EVENTS.DATA_UPDATE, prev_data, new_data);
 	      }
 	    }
+
+	    /**
+	     * 进行job
+	     * @PARAM {Number} targetStep task中job的index
+	     * @PARAM {Object} options
+	     *    options现在支持的只有 notHistory，表示该job不被写入历史记录中
+	    */
+
 	  }, {
 	    key: 'go',
 	    value: function go(targetStep, options) {
 	      if (targetStep === undefined) return;
-	      options = Object({
-	        silent: false
-	      }, options);
 	      var jobConfig = this.config[targetStep];
 	      var jobOptions, jobAction;
 	      if (typeof jobConfig === 'function') {
@@ -235,24 +243,33 @@ var jFactory =
 
 	      jobOptions = Object.assign({
 	        notHistory: false
-	      }, jobConfig.options);
+	      }, jobConfig.options, options);
 
-	      if (!options.silent && !jobOptions.notHistory) {
+	      this.trigger(this.constructor.EVENTS.JOB_BEFORE_ACTION, this.data);
+
+	      //修改历史记录
+	      if (!jobOptions.notHistory) {
 	        this.history.splice(this.history.step, this.history.length - this.history.step, targetStep);
 	        this.history.step = this.history.length;
 	      }
 
-	      this.trigger('beforeActive', this.data);
-
 	      this.step = targetStep;
 	      var active = jobAction(this.data, this);
 	      this.trigger(this.constructor.EVENTS.JOB_ACTION, this.data);
+	      /*
+	       * 如果返回值是 function, 则可以通过({next}) => {next()}进入下一步，为异步流程控制设计
+	      */
 	      if (typeof active === 'function') {
 	        active(this);
 	      } else {
 	        this.next(active);
 	      }
 	    }
+
+	    /**
+	     * 跳转下一个job
+	    */
+
 	  }, {
 	    key: 'next',
 	    value: function next(new_item) {
@@ -268,6 +285,11 @@ var jFactory =
 	      }
 	      this.go(targetStep);
 	    }
+
+	    /**
+	     * 跳转上一个job
+	    */
+
 	  }, {
 	    key: 'previous',
 	    value: function previous(new_item) {
@@ -280,6 +302,11 @@ var jFactory =
 	      }
 	      this.go(targetStep);
 	    }
+
+	    /**
+	     * 跳转至历史记录中的上一个job
+	     */
+
 	  }, {
 	    key: 'back',
 	    value: function back(new_item) {
@@ -292,6 +319,11 @@ var jFactory =
 	        this.go(targetStep, { silent: true });
 	      }
 	    }
+
+	    /**
+	     * 跳转至历史记录中的下一个job
+	     */
+
 	  }, {
 	    key: 'forward',
 	    value: function forward(new_item) {
@@ -304,21 +336,41 @@ var jFactory =
 	        this.go(targetStep, { silent: true });
 	      }
 	    }
+
+	    /**
+	     * 任务取消，触发EVENTS.CANCEL事件
+	     */
+
 	  }, {
 	    key: 'cancel',
 	    value: function cancel(new_item) {
 	      if (new_item) this.update(new_item);
 	      this.trigger(this.constructor.EVENTS.CANCEL, this.data);
+	      this.destroy();
 	    }
+
+	    /**
+	     * 任务完成，触发EVENTS.COMPLETE事件
+	     */
+
 	  }, {
 	    key: 'complete',
 	    value: function complete(new_item) {
 	      if (new_item) this.update(new_item);
 	      this.trigger(this.constructor.EVENTS.COMPLETE, this.data);
+	      this.destroy();
 	    }
+
+	    /**
+	     * EVENTS事件列表
+	     */
+
 	  }, {
 	    key: 'destroy',
 	    value: function destroy() {
+	      if (typeof this.constructor.destroy === 'function') {
+	        this.constructor.destroy();
+	      }
 	      delete this.options;
 	      delete this.data;
 	      delete this.config;
@@ -330,7 +382,9 @@ var jFactory =
 	      return {
 	        COMPLETE: 'complete',
 	        CANCEL: 'cancel',
-	        JOB_ACTION: 'active'
+	        JOB_BEFORE_ACTION: 'beforeActive',
+	        JOB_ACTION: 'active',
+	        DATA_UPDATE: 'update'
 	      };
 	    }
 	  }]);
@@ -405,6 +459,11 @@ var jFactory =
 	        });
 	      }
 	      return this;
+	    }
+	  }, {
+	    key: 'destroy',
+	    value: function destroy() {
+	      delete this._events;
 	    }
 	  }]);
 

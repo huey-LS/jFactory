@@ -34,4 +34,8 @@ export default class Event {
     }
     return this;
   }
+
+  destroy() {
+    delete this._events;
+  }
 }
