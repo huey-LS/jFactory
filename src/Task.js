@@ -106,7 +106,7 @@ export default class Task extends Event {
       // 历史纪录里回退一步
       this.history.step --;
       targetStep = this.history[this.history.step - 1];
-      this.go(targetStep, {silent: true});
+      this.go(targetStep, {notHistory: true});
     }
   }
 
@@ -120,7 +120,7 @@ export default class Task extends Event {
       // 历史纪录里回前进一步
       this.history.step ++;
       targetStep = this.history[this.history.step + 1];
-      this.go(targetStep, {silent: true});
+      this.go(targetStep, {notHistory: true});
     }
   }
 

@@ -17,5 +17,5 @@ export default {
   })],
   format: 'umd',
   moduleName: 'jFactory',
-  dest: 'dist/jFactory-umd.js'
+  dest: 'dist/jFactory.js'
 };
