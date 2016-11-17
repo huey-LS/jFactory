@@ -26,7 +26,10 @@ export default class Factory {
   createTaskArray(taskArray) {
     return taskArray.map((jobName) => {
       if(typeof jobName === 'string' && this._jobs[jobName]) {
-        return this._jobs[jobName];
+        return {
+          name: jobName,
+          main: this._jobs[jobName]
+        };
       } else if(typeof jobName === 'function'){
         return jobName;
       } else if(jobName.main){

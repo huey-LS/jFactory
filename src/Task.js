@@ -10,8 +10,10 @@ export default class Task extends Event {
 
     /*
      * nextTick, 保证.on('complete')可以被触发到
+     * 使用setTimeout代替，兼容性更佳
     */
-    Promise.resolve().then(() => {this.next()});
+    //Promise.resolve().then(() => {this.next()});
+    setTimeout(() => {this.next()}, 0);
   }
 
   update(new_data) {
@@ -23,6 +25,31 @@ export default class Task extends Event {
   }
 
   /**
+   * 获取任务中的目标job，支持数字和字符串
+   */
+  getJob(targetStep) {
+    var index, config;
+    if(typeof targetStep === 'number') {
+      index = targetStep;
+    } else if(typeof targetStep === 'string') {
+      index = this.config.findIndex(function (item) {
+        return item === targetStep || item.name === targetStep;
+      })
+    } else if(typeof targetStep === 'function') {
+      index = this.config.findIndex(function (item) {
+        return targetStep(item);
+      })
+    }
+
+    if(index >= 0) {
+      return {
+        config: this.config[index],
+        index: index
+      };
+    }
+  }
+
+  /**
    * 进行job
    * @PARAM {Number} targetStep task中job的index
    * @PARAM {Object} options
@@ -30,14 +57,20 @@ export default class Task extends Event {
   */
   go(targetStep, options) {
     if(targetStep === undefined) return;
-    var jobConfig = this.config[targetStep];
+    var jobConfig = this.getJob(targetStep);
+    var targetIndex = jobConfig.index;
+    jobConfig = jobConfig.config;
+    if(!jobConfig) {
+      throw new Error('get job error: on ' + targetStep +'; no this target');
+      return;
+    }
     var jobOptions, jobAction;
     if(typeof jobConfig === 'function') {
       jobAction = jobConfig;
     } else if(typeof jobConfig.main === 'function') {
       jobAction = jobConfig.main;
     } else {
-      throw new Error('job or job.main must is function');
+      throw new Error('get job error: on ' + targetStep +'; job or job.main must is function');
     }
 
     jobOptions = Object.assign({
@@ -48,11 +81,11 @@ export default class Task extends Event {
 
     //修改历史记录
     if(!jobOptions.notHistory) {
-      this.history.splice(this.history.step, this.history.length - this.history.step, targetStep);
+      this.history.splice(this.history.step, this.history.length - this.history.step, targetIndex);
       this.history.step = this.history.length;
     }
 
-    this.step = targetStep;
+    this.step = targetIndex;
     var active = jobAction(this.data, this);
     this.trigger(this.constructor.EVENTS.JOB_ACTION, this.data);
     /*
