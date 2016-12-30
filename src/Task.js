@@ -13,14 +13,14 @@ export default class Task extends Event {
      * 使用setTimeout代替，兼容性更佳
     */
     //Promise.resolve().then(() => {this.next()});
-    setTimeout(() => {this.next()}, 0);
+    setTimeout(() => {this.next();}, 0);
   }
 
-  update(new_data) {
-    var prev_data = this.data;
-    if(typeof new_data !== 'undefined' && new_data !== prev_data){
-      this.data = new_data;
-      this.trigger(this.constructor.EVENTS.DATA_UPDATE, prev_data, new_data);
+  update(newData) {
+    var prevData = this.data;
+    if(typeof newData !== 'undefined' && newData !== prevData){
+      this.data = newData;
+      this.trigger(this.constructor.EVENTS.DATA_UPDATE, prevData, newData);
     }
   }
 
@@ -28,17 +28,17 @@ export default class Task extends Event {
    * 获取任务中的目标job，支持数字和字符串
    */
   getJob(targetStep) {
-    var index, config;
+    var index;
     if(typeof targetStep === 'number') {
       index = targetStep;
     } else if(typeof targetStep === 'string') {
       index = this.config.findIndex(function (item) {
         return item === targetStep || item.name === targetStep;
-      })
+      });
     } else if(typeof targetStep === 'function') {
       index = this.config.findIndex(function (item) {
         return targetStep(item);
-      })
+      });
     }
 
     if(index >= 0) {
@@ -62,7 +62,6 @@ export default class Task extends Event {
     jobConfig = jobConfig.config;
     if(!jobConfig) {
       throw new Error('get job error: on ' + targetStep +'; no this target');
-      return;
     }
     var jobOptions, jobAction;
     if(typeof jobConfig === 'function') {
@@ -101,8 +100,8 @@ export default class Task extends Event {
   /**
    * 跳转下一个job
   */
-  next(new_item) {
-    if(new_item) this.update(new_item);
+  next(newItem) {
+    if(newItem) this.update(newItem);
     var targetStep;
     if(this.step === undefined){
       targetStep = 0;
@@ -118,8 +117,8 @@ export default class Task extends Event {
   /**
    * 跳转上一个job
   */
-  previous(new_item) {
-    if(new_item) this.update(new_item);
+  previous(newItem) {
+    if(newItem) this.update(newItem);
     var targetStep;
     if(this.step === undefined){
       targetStep = 0;
@@ -132,8 +131,8 @@ export default class Task extends Event {
   /**
    * 跳转至历史记录中的上一个job
    */
-  back(new_item) {
-    if(new_item) this.update(new_item);
+  back(newItem) {
+    if(newItem) this.update(newItem);
     var targetStep;
     if(this.history.length && this.history.step > 0){
       // 历史纪录里回退一步
@@ -146,8 +145,8 @@ export default class Task extends Event {
   /**
    * 跳转至历史记录中的下一个job
    */
-  forward(new_item) {
-    if(new_item) this.update(new_item);
+  forward(newItem) {
+    if(newItem) this.update(newItem);
     var targetStep;
     if(this.history.length && this.history.step < this.history.length){
       // 历史纪录里回前进一步
@@ -160,8 +159,8 @@ export default class Task extends Event {
   /**
    * 任务取消，触发EVENTS.CANCEL事件
    */
-  cancel(new_item) {
-    if(new_item) this.update(new_item);
+  cancel(newItem) {
+    if(newItem) this.update(newItem);
     this.trigger(this.constructor.EVENTS.CANCEL, this.data);
     this.destroy();
   }
@@ -169,8 +168,8 @@ export default class Task extends Event {
   /**
    * 任务完成，触发EVENTS.COMPLETE事件
    */
-  complete(new_item) {
-    if(new_item) this.update(new_item);
+  complete(newItem) {
+    if(newItem) this.update(newItem);
     this.trigger(this.constructor.EVENTS.COMPLETE, this.data);
     this.destroy();
   }
@@ -185,7 +184,7 @@ export default class Task extends Event {
       JOB_BEFORE_ACTION: 'beforeActive',
       JOB_ACTION: 'active',
       DATA_UPDATE: 'update'
-    }
+    };
   }
 
   destroy() {
@@ -196,5 +195,5 @@ export default class Task extends Event {
     delete this.data;
     delete this.config;
     delete this.history;
-  };
+  }
 }

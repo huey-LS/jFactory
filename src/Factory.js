@@ -1,4 +1,4 @@
-import Task from './Task'
+import Task from './Task';
 
 export default class Factory {
   constructor(options) {

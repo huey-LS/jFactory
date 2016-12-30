@@ -1,9 +1,9 @@
 import jFactory from 'jFactory';
 
 var welcome = function(item){
-    alert('welcome');
-    return item || {};
-}
+  alert('welcome');
+  return item || {};
+};
 
 var tallMeName = function(item){
   var name;
@@ -19,9 +19,9 @@ var tallMeName = function(item){
   } else {
     return function(task) {
       task.cancel();
-    }
+    };
   }
-}
+};
 
 var tallMePhone = function(item){
   var phone;
@@ -38,9 +38,9 @@ var tallMePhone = function(item){
   } else {
     return function (task) {
       task.cancel;
-    }
+    };
   }
-}
+};
 
 var select = function(item){
   var select = confirm('确认告诉我手机，取消告诉我名字。');
@@ -51,23 +51,23 @@ var select = function(item){
     type = 'name';
   }
   return Object.assign({}, item, {type});
-}
+};
 
 var success = function(item){
-  var is_success;
+  var _isSuccess;
   if(item.name){
-    is_success = confirm('name is ' + item.name + '; 确认完成，取消返回上一部');
+    _isSuccess = confirm('name is ' + item.name + '; 确认完成，取消返回上一部');
   } else if(item.phone){
-    is_success = confirm('phone is' + item.phone + '; 确认完成，取消返回上一部');
+    _isSuccess = confirm('phone is' + item.phone + '; 确认完成，取消返回上一部');
   }
   return function(task){
-    if(is_success){
+    if(_isSuccess){
       task.next();
     } else {
       task.back();
     }
-  }
-}
+  };
+};
 
 
 var myFactory = new jFactory({
@@ -117,14 +117,14 @@ var myFactory = new jFactory({
     'tallMePhone': tallMePhone,
     'success': success
   }
-})
+});
 
 document.getElementById('task1').onclick = function(){
   myFactory.createTask('tallMeName');
-}
+};
 document.getElementById('task2').onclick = function(){
   myFactory.createTask('tallMePhone');
-}
+};
 document.getElementById('task3').onclick = function(){
   myFactory.createTask('tallMe');
-}
+};
